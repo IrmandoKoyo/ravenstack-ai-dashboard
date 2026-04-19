@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   DollarSign, BarChart3, AlertTriangle, Star,
   Sun, Moon, MessageCircle, Send, X, Calendar,
-  Filter, Loader2, Bot, ChevronDown, ChevronUp, Minimize2,
+  Filter, Loader2, Bot, ChevronDown, ChevronUp, Minimize2, Maximize2,
   TrendingUp, PieChart, AlertCircle, Activity,
   Globe, Users, Zap, LayoutDashboard
 } from 'lucide-react';
@@ -87,6 +87,23 @@ function SupportPriorityBar({ breakdown }: { breakdown: Record<string, number> }
         </ul>
       )}
     </div>
+  );
+}
+
+function ExpandButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      className="btn-expand"
+      onClick={event => {
+        event.stopPropagation();
+        onClick();
+      }}
+      aria-label={label}
+      title={label}
+    >
+      <Maximize2 size={15} />
+    </button>
   );
 }
 
@@ -374,7 +391,21 @@ function AIChatPanel({ isOpen, onClose, dataContext, activePage }: {
 // ============================================================
 // Main App
 // ============================================================
-type ModalContent = 'line' | 'bar' | 'pie' | 'table' | 'docs' | 'support' | 'team' | null;
+type ModalContent =
+  | 'line'
+  | 'bar'
+  | 'pie'
+  | 'geo'
+  | 'referral'
+  | 'feature-usage'
+  | 'feature-table'
+  | 'growth'
+  | 'table'
+  | 'support-metrics'
+  | 'docs'
+  | 'support'
+  | 'team'
+  | null;
 
 export default function App() {
   // Theme & Navigation
@@ -448,6 +479,35 @@ export default function App() {
   useEffect(() => {
     setAnimKey(prev => prev + 1);
   }, [filters]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setModalOpen(null);
+        setChatOpen(false);
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName;
+      const isTypingTarget =
+        tagName === 'INPUT' ||
+        tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' ||
+        target?.isContentEditable;
+
+      if (isTypingTarget) return;
+
+      if (event.key === '1') {
+        setModalOpen('team');
+      } else if (event.key === '2') {
+        setModalOpen('docs');
+      }
+    };
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
 
   // Reset filters
   const resetFilters = () => {
@@ -591,6 +651,7 @@ export default function App() {
             <div className="chart-card chart-col-3">
               <div className="chart-card-header">
                 <h3><TrendingUp size={18} style={{ color: 'var(--accent)' }} /> MRR Trend</h3>
+                <ExpandButton onClick={() => setModalOpen('line')} label="Open MRR Trend modal" />
               </div>
               <div key={`line-${animKey}`}>
                 <LineChartComponent data={mrrTrend} />
@@ -599,6 +660,7 @@ export default function App() {
             <div className="chart-card chart-col-2">
               <div className="chart-card-header">
                 <h3><BarChart3 size={18} style={{ color: 'var(--accent)' }} /> Revenue by Industry</h3>
+                <ExpandButton onClick={() => setModalOpen('bar')} label="Open Revenue by Industry modal" />
               </div>
               <div key={`bar-${animKey}`}>
                 <BarChartComponent data={industryRevenue} />
@@ -607,6 +669,7 @@ export default function App() {
             <div className="chart-card chart-col-1">
               <div className="chart-card-header">
                 <h3><PieChart size={18} style={{ color: 'var(--accent)' }} /> Plan Distribution</h3>
+                <ExpandButton onClick={() => setModalOpen('pie')} label="Open Plan Distribution modal" />
               </div>
               <div key={`pie-${animKey}`}>
                 <PieChartComponent data={planDistribution} />
@@ -621,6 +684,7 @@ export default function App() {
               <div className="chart-card-header">
                 <h3><Globe size={18} style={{ color: 'var(--accent)' }} /> Geographic Distribution</h3>
                 <p className="chart-card-subtitle">Top 10 countries by active subscriptions</p>
+                <ExpandButton onClick={() => setModalOpen('geo')} label="Open Geographic Distribution modal" />
               </div>
               <div key={`geo-${animKey}`}>
                 <CountryBar data={countryData} />
@@ -629,6 +693,7 @@ export default function App() {
             <div className="chart-card chart-col-1">
               <div className="chart-card-header">
                 <h3><Star size={18} style={{ color: 'var(--accent)' }} /> Referral Sources</h3>
+                <ExpandButton onClick={() => setModalOpen('referral')} label="Open Referral Sources modal" />
               </div>
               <div key={`ref-${animKey}`}>
                 <ReferralPie data={referralData} />
@@ -643,6 +708,7 @@ export default function App() {
               <div className="chart-card-header">
                 <h3><Activity size={18} style={{ color: 'var(--accent)' }} /> Feature Usage Depth</h3>
                 <p className="chart-card-subtitle">Top 10 features by usage frequency</p>
+                <ExpandButton onClick={() => setModalOpen('feature-usage')} label="Open Feature Usage Depth modal" />
               </div>
               <div key={`feat-${animKey}`}>
                 <FeatureBar data={featureUsage} />
@@ -651,6 +717,7 @@ export default function App() {
             <div className="chart-card chart-col-3" style={{ marginTop: '20px' }}>
               <div className="chart-card-header">
                 <h3><Zap size={18} style={{ color: 'var(--accent)' }} /> Feature Performance & Errors</h3>
+                <ExpandButton onClick={() => setModalOpen('feature-table')} label="Open Feature Performance table modal" />
               </div>
               <FeatureTable data={featureUsage} />
             </div>
@@ -663,6 +730,7 @@ export default function App() {
               <div className="chart-card-header">
                 <h3><TrendingUp size={18} style={{ color: 'var(--accent)' }} /> Subscription Growth Analysis</h3>
                 <p className="chart-card-subtitle">Monthly new vs churned subscriptions</p>
+                <ExpandButton onClick={() => setModalOpen('growth')} label="Open Subscription Growth Analysis modal" />
               </div>
               <div key={`growth-${animKey}`}>
                 <GrowthBar data={mrrTrend} />
@@ -672,6 +740,7 @@ export default function App() {
             <div className="chart-card chart-col-3" style={{ marginTop: '20px' }}>
               <div className="chart-card-header">
                 <h3><AlertCircle size={18} style={{ color: 'var(--accent)' }} /> Churn Watchlist</h3>
+                <ExpandButton onClick={() => setModalOpen('table')} label="Open Churn Watchlist modal" />
               </div>
               <ChurnTable data={churnWatchlist} />
             </div>
@@ -681,6 +750,7 @@ export default function App() {
               <div className="chart-card-header">
                 <h3><Activity size={18} style={{ color: 'var(--accent)' }} /> Support Metrics</h3>
                 <p className="chart-card-subtitle">Customer support performance overview</p>
+                <ExpandButton onClick={() => setModalOpen('support-metrics')} label="Open Support Metrics modal" />
               </div>
               <div className="support-metrics-kpis">
                 <div className="support-metric-cell">
@@ -726,7 +796,13 @@ export default function App() {
                 {modalOpen === 'line' && <><TrendingUp size={22} style={{ color: 'var(--accent)' }}/> MRR Trend</>}
                 {modalOpen === 'bar' && <><BarChart3 size={22} style={{ color: 'var(--accent)' }}/> Revenue by Industry</>}
                 {modalOpen === 'pie' && <><PieChart size={22} style={{ color: 'var(--accent)' }}/> Plan Distribution</>}
+                {modalOpen === 'geo' && <><Globe size={22} style={{ color: 'var(--accent)' }}/> Geographic Distribution</>}
+                {modalOpen === 'referral' && <><Star size={22} style={{ color: 'var(--accent)' }}/> Referral Sources</>}
+                {modalOpen === 'feature-usage' && <><Activity size={22} style={{ color: 'var(--accent)' }}/> Feature Usage Depth</>}
+                {modalOpen === 'feature-table' && <><Zap size={22} style={{ color: 'var(--accent)' }}/> Feature Performance & Errors</>}
+                {modalOpen === 'growth' && <><TrendingUp size={22} style={{ color: 'var(--accent)' }}/> Subscription Growth Analysis</>}
                 {modalOpen === 'table' && <><AlertCircle size={22} style={{ color: 'var(--accent)' }}/> Churn Watchlist</>}
+                {modalOpen === 'support-metrics' && <><Activity size={22} style={{ color: 'var(--accent)' }}/> Support Metrics</>}
               </h2>
               <button className="modal-close" onClick={() => setModalOpen(null)}>
                 <Minimize2 size={18} />
@@ -736,7 +812,46 @@ export default function App() {
               {modalOpen === 'line' && <LineChartComponent data={mrrTrend} />}
               {modalOpen === 'bar' && <BarChartComponent data={industryRevenue} />}
               {modalOpen === 'pie' && <PieChartComponent data={planDistribution} />}
+              {modalOpen === 'geo' && <CountryBar data={countryData} />}
+              {modalOpen === 'referral' && <ReferralPie data={referralData} />}
+              {modalOpen === 'feature-usage' && <FeatureBar data={featureUsage} />}
+              {modalOpen === 'feature-table' && <FeatureTable data={featureUsage} />}
+              {modalOpen === 'growth' && <GrowthBar data={mrrTrend} />}
               {modalOpen === 'table' && <ChurnTable data={churnWatchlist} />}
+              {modalOpen === 'support-metrics' && (
+                <>
+                  <div className="support-metrics-kpis">
+                    <div className="support-metric-cell">
+                      <p className="support-metric-label">Total Tickets</p>
+                      <p className="support-metric-value">{supportData.total_tickets.toLocaleString()}</p>
+                    </div>
+                    <div className="support-metric-cell">
+                      <p className="support-metric-label">Avg Resolution</p>
+                      <p className="support-metric-value">
+                        {supportData.avg_resolution_hours}
+                        <span className="support-metric-unit"> hrs</span>
+                      </p>
+                    </div>
+                    <div className="support-metric-cell">
+                      <p className="support-metric-label">First Response</p>
+                      <p className="support-metric-value">
+                        {supportData.avg_first_response_minutes}
+                        <span className="support-metric-unit"> min</span>
+                      </p>
+                    </div>
+                    <div className="support-metric-cell">
+                      <p className="support-metric-label">Escalation Rate</p>
+                      <p
+                        className="support-metric-value"
+                        style={{ color: supportData.escalation_rate > 10 ? '#ef4444' : 'var(--accent)' }}
+                      >
+                        {supportData.escalation_rate}%
+                      </p>
+                    </div>
+                  </div>
+                  <SupportPriorityBar breakdown={supportData.priority_breakdown} />
+                </>
+              )}
               {modalOpen === 'docs' && (
                 <div style={{ padding: '20px', color: 'var(--text-primary)' }}>
                   <h3 style={{ marginBottom: '16px', color: 'var(--accent)' }}><LayoutDashboard size={20} style={{ verticalAlign: 'middle', marginRight: '8px' }}/> System Documentation</h3>

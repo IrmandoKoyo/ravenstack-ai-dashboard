@@ -1,0 +1,31 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/davizclass",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/davizclass/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/davizclass/favicon.png",
+      "destination": "/favicon.png"
+    },
+    {
+      "source": "/davizclass/favicon.ico",
+      "destination": "/favicon.ico"
+    },
+    {
+      "source": "/davizclass",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/davizclass/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}

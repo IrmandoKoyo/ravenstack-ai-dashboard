@@ -491,6 +491,7 @@
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.4;
+  order: 3;
 }
 
 /* ---- Support Metrics (Success page) ---- */
@@ -639,6 +640,7 @@
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-left: auto;
 }
 
 .btn-expand:hover {
